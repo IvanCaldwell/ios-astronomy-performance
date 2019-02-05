@@ -23,7 +23,7 @@ extension UIImage {
         contrastFilter.setValue(sharpenFilter.outputImage, forKey: kCIInputImageKey)
         
         let output = contrastFilter.outputImage!
-        let cgImage = context.createCGImage(output, from: output.extent)
+        //let cgImage = context.createCGImage(output, from: output.extent)
         return UIImage(cgImage: cgImage!)
     }
 }

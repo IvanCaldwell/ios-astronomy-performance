@@ -33,15 +33,15 @@ class PhotoDetailViewController: UIViewController {
     private func updateViews() {
         guard let photo = photo, isViewLoaded else { return }
         // Approach #1
-        do {
-            let data = try Data(contentsOf: photo.imageURL.usingHTTPS!)
-            let filtered = UIImage(data: data)?.filtered()
-            DispatchQueue.main.async {
-                self.imageView.image = filtered
-            }
-        } catch {
-            NSLog("Error setting up views on detail view controller: \(error)")
-        }
+//        do {
+//            let data = try Data(contentsOf: photo.imageURL.usingHTTPS!)
+//            let filtered = UIImage(data: data)?.filtered()
+//            DispatchQueue.main.async {
+//                self.imageView.image = filtered
+//            }
+//        } catch {
+//            NSLog("Error setting up views on detail view controller: \(error)")
+//        }
     
         
         // Approach #2

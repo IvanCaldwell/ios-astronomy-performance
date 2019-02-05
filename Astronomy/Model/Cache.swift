@@ -20,6 +20,12 @@ class Cache<Key: Hashable, Value> {
         return queue.sync { cache[key] }
     }
     
+    // We don't have to wait for this to finish.
+    func clear() {
+        queue.async {
+            self.cache.removeAll()
+        }
+    }
     private var cache = [Key : Value]()
     private let queue = DispatchQueue(label: "com.LambdaSchool.Astronomy.CacheQueue")
 }

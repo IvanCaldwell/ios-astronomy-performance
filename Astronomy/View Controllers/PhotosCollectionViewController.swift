@@ -32,6 +32,7 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         guard let index = solDescriptions.index(of: solDescription) else { return }
         guard index > 0 else { return }
         self.solDescription = solDescriptions[index-1]
+        self.cache.clear()
     }
     
     @IBAction func goToNextSol(_ sender: Any?) {
@@ -40,6 +41,7 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         guard let index = solDescriptions.index(of: solDescription) else { return }
         guard index < solDescriptions.count - 1 else { return }
         self.solDescription = solDescriptions[index+1]
+        self.cache.clear()
     }
     
     // UICollectionViewDataSource/Delegate
@@ -167,8 +169,8 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
             }
         }
         
-        cacheOp.addDependency(fetchOp)
-        updateImageViewOp.addDependency(fetchOp)
+        cacheOp.addDependency(filterOp)
+        updateImageViewOp.addDependency(filterOp)
         
         photoFetchQueue.addOperation(fetchOp)
         photoFetchQueue.addOperation(cacheOp)
