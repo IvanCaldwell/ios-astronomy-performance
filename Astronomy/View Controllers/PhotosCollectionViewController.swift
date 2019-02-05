@@ -147,6 +147,16 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
                 self.cache.cache(value: data, for: photoReference.id)
             }
         }
+// Sergey's Way...
+//        let filterOp = BlockOperation {
+//            let filtered = UIImage(data: data)?.filtered()
+//            //how do i....
+//        }
+        
+        let filterOp = FilterImageOperation(fetchPhotoOperation: fetchOp)
+        // Don't run filterOp until after fetchOp has finished
+        filterOp.addDependency(fetchOp)
+        
         let completionOp = BlockOperation {
             defer { self.operations.removeValue(forKey: photoReference.id) }
             
@@ -155,8 +165,8 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
                 return // Cell has been reused
             }
             
-            if let data = fetchOp.imageData {
-                cell.imageView.image = UIImage(data: data)?.filtered()
+            if let image = filterOp.filteredImage {
+                cell.imageView.image = image
             }
         }
         
@@ -165,6 +175,8 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         
         photoFetchQueue.addOperation(fetchOp)
         photoFetchQueue.addOperation(cacheOp)
+        filterPhotoQueue.addOperation(filterOp)
+        
         OperationQueue.main.addOperation(completionOp)
         
         operations[photoReference.id] = fetchOp
@@ -173,8 +185,9 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
     // Properties
     
     private let client = MarsRoverClient()
-    private let cache = Cache<Int, Data>()
+    private let cache = Cache<Int, UIImage>()
     private let photoFetchQueue = OperationQueue()
+    private let filterPhotoQueue = OperationQueue()
     private var operations = [Int : Operation]()
     
     private var roverInfo: MarsRover? {
