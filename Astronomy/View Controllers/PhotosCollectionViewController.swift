@@ -134,30 +134,27 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         let photoReference = photoReferences[indexPath.item]
         
         // Check for image in cache
-        if let cachedImageData = cache.value(for: photoReference.id),
-            let image = UIImage(data: cachedImageData) {
-            cell.imageView.image = image.filtered()
+        if let cachedImage = cache.value(for: photoReference.id) {
+            cell.imageView.image = cachedImage
             return
         }
         
         // Start an operation to fetch image data
         let fetchOp = FetchPhotoOperation(photoReference: photoReference)
-        let cacheOp = BlockOperation {
-            if let data = fetchOp.imageData {
-                self.cache.cache(value: data, for: photoReference.id)
-            }
-        }
-// Sergey's Way...
-//        let filterOp = BlockOperation {
-//            let filtered = UIImage(data: data)?.filtered()
-//            //how do i....
-//        }
         
         let filterOp = FilterImageOperation(fetchPhotoOperation: fetchOp)
         // Don't run filterOp until after fetchOp has finished
         filterOp.addDependency(fetchOp)
         
-        let completionOp = BlockOperation {
+        
+        let cacheOp = BlockOperation {
+            if let image = filterOp.filteredImage {
+                self.cache.cache(value: image, for: photoReference.id)
+            }
+        }
+        
+        
+        let updateImageViewOp = BlockOperation {
             defer { self.operations.removeValue(forKey: photoReference.id) }
             
             if let currentIndexPath = self.collectionView?.indexPath(for: cell),
@@ -171,13 +168,13 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         }
         
         cacheOp.addDependency(fetchOp)
-        completionOp.addDependency(fetchOp)
+        updateImageViewOp.addDependency(fetchOp)
         
         photoFetchQueue.addOperation(fetchOp)
         photoFetchQueue.addOperation(cacheOp)
         filterPhotoQueue.addOperation(filterOp)
         
-        OperationQueue.main.addOperation(completionOp)
+        OperationQueue.main.addOperation(updateImageViewOp)
         
         operations[photoReference.id] = fetchOp
     }
